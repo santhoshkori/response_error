@@ -53,15 +53,55 @@ const has_category_and_has_priority = (request_query) => {
 };
 
 app.get("/todos/", async (request, response) => {
-  const get_query = `
-  SELECT
-  *
-  FROM 
-  todo
-  WHERE
-  todo="TO DO"
-  ;`;
-  console.log(get_query);
-  const get_todo_det = await todo_DB.all(get_query);
-  response.send(get_todo_det);
+  let { status, priority, search_q = "", category } = request.query;
+  //console.log(has_priority_and_has_status(request.query));
+  let todo_query = "";
+  switch (true) {
+    case has_status(request.query):
+      todo_query = `
+      SELECT
+      *
+      FROM
+      todo
+      WHERE
+      status="${status}" AND todo LIKE "%${search_q}%" 
+      ;`;
+      break;
+    case has_prority(request.query):
+      todo_query = `
+      SELECT
+      *
+      FROM
+      todo
+      WHERE 
+      priority="${priority}" AND todo LIKE "%${search_q}%"
+
+      ;`;
+      break;
+    case has_priority_and_has_status(request.query):
+      todo_query = `
+      SELECT
+      *
+      FROM
+      todo
+      WHERE
+      priority='${priority}' AND status='${status}'
+      ;`;
+      break;
+
+    default:
+      todo_query = `
+      SELECT
+      *
+      FROM
+      todo
+      WHERE
+      todo LIKE '%${search_q}%'
+      ;`;
+  }
+  const get_data = await todo_DB.all(todo_query);
+  console.log(has_priority_and_has_status(request.query));
+  console.log(todo_query, request.query);
+  console.log(get_data);
 });
+module.exports = app;
